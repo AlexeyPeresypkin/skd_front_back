@@ -8,14 +8,16 @@ services:
     build: ./backend
     container_name: gogol_backend
     #    command: uvicorn main:app --host 0.0.0.0 --port 8002
-    command: gunicorn -b 0.0.0.0:8002 -k uvicorn.workers.UvicornWorker main:app
-    # --keyfile=./certs/privkey.pem --certfile=./certs/cert.pem
-    volumes:
+    command: gunicorn -b 0.0.0.0:8002 --keyfile=./certs/privkey.pem --certfile=./certs/cert.pem -k uvicorn.workers.UvicornWorker main:app
+    #
+#    volumes:
       #      - ./certbot/www:/var/www/certbot/:ro
-      - ./certbot/conf/live/skd.profticket.ru/:/app/certs:ro
+#      - ./certbot/conf/live/skd.profticket.ru/:/app/certs:ro
     #      - .:/app
     ports:
       - "8002:8002"
+#    depends_on:
+#      - frontend
     env_file:
       - ./backend/.env_gogol
 

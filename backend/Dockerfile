@@ -7,3 +7,4 @@ COPY ./requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir --upgrade -r /app/requirements.txt
 
 COPY . .
+COPY ../certbot/conf/live/skd.profticket.ru ./certs
