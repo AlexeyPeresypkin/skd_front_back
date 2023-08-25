@@ -11,7 +11,7 @@ services:
     command: gunicorn -b 0.0.0.0:8002 -k uvicorn.workers.UvicornWorker main:app
     volumes:
 #      - ./certbot/www:/var/www/certbot/:ro
-      - ./certbot/conf/:./certs
+      - ./certbot/conf/:/certs
     #      - .:/app
     ports:
       - "8002:8002"
