@@ -28,17 +28,21 @@ def default(obj):
 app = FastAPI()
 origins = ["*"]
 # app.add_middleware(HTTPSRedirectMiddleware)
-app.add_middleware(CORSMiddleware,
-                   allow_origins=origins,
-                   allow_credentials=True,
-                   allow_methods=["*"],
-                   allow_headers=["*"])
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-sql_username = os.environ.get('POSTGRES_USER')
-sql_password = os.environ.get('POSTGRES_PASSWORD')
-sql_host = os.environ.get('POSTGRES_HOST')
-sql_db = os.environ.get('POSTGRES_DB')
-conn = pymssql.connect(sql_host, sql_username, sql_password, sql_db, charset='cp1251', as_dict=True)
+sql_username = os.environ.get("POSTGRES_USER")
+sql_password = os.environ.get("POSTGRES_PASSWORD")
+sql_host = os.environ.get("POSTGRES_HOST")
+sql_db = os.environ.get("POSTGRES_DB")
+conn = pymssql.connect(
+    sql_host, sql_username, sql_password, sql_db, charset="cp1251", as_dict=True
+)
 
 stageid = -1
 init = dict()
@@ -101,9 +105,11 @@ async def get_repertoire(st: int | None = None):
                 records = cursor.fetchall()
                 return jsonable_encoder(records)
             except:
-                HTTPException(status_code=500, detail='Ошибка во время выполнения запроса.')
+                HTTPException(
+                    status_code=500, detail="Ошибка во время выполнения запроса."
+                )
     else:
-        HTTPException(status_code=500, detail='Подключение к базе данных отсутствует.')
+        HTTPException(status_code=500, detail="Подключение к базе данных отсутствует.")
 
 
 @app.get("/settings")
@@ -112,34 +118,48 @@ async def get_settings(deviceid: int | None = None):
         with conn.cursor() as cursor:
             if deviceid is None:
                 try:
-                    cursor.execute("insert into skud_settings(settings) values('');"
-                                   "SELECT max(id) as deviceid, '' as settings FROM skud_settings ss; ")
+                    cursor.execute(
+                        "insert into skud_settings(settings) values('');"
+                        "SELECT max(id) as deviceid, '' as settings FROM skud_settings ss; "
+                    )
                     records = cursor.fetchone()
                     conn.commit()
                     response = JSONResponse(records)
                     return response
                 except:
-                    HTTPException(status_code=500, detail='Ошибка во время выполнения запроса.')
+                    HTTPException(
+                        status_code=500, detail="Ошибка во время выполнения запроса."
+                    )
             else:
                 try:
-                    cursor.execute('if exists(select id from skud_settings where id=' + str(
-                        deviceid) + ') select 1 as res else select 2 as res;')
+                    cursor.execute(
+                        "if exists(select id from skud_settings where id="
+                        + str(deviceid)
+                        + ") select 1 as res else select 2 as res;"
+                    )
                     if cursor.fetchone()["res"] == 2:
-                        cursor.execute("insert into skud_settings(settings) values('');"
-                                       "SELECT max(id) as deviceid, '' as settings FROM skud_settings ss; ")
+                        cursor.execute(
+                            "insert into skud_settings(settings) values('');"
+                            "SELECT max(id) as deviceid, '' as settings FROM skud_settings ss; "
+                        )
                         records = cursor.fetchone()
                         conn.commit()
                         response = JSONResponse(records)
                         return response
                     else:
-                        cursor.execute('select id as deviceid, settings from skud_settings where id=' + str(deviceid))
+                        cursor.execute(
+                            "select id as deviceid, settings from skud_settings where id="
+                            + str(deviceid)
+                        )
                         records = cursor.fetchone()
                         response = JSONResponse(records)
                         return response
                 except:
-                    HTTPException(status_code=500, detail='Ошибка во время выполнения запроса.')
+                    HTTPException(
+                        status_code=500, detail="Ошибка во время выполнения запроса."
+                    )
     else:
-        HTTPException(status_code=500, detail='Подключение к базе данных отсутствует.')
+        HTTPException(status_code=500, detail="Подключение к базе данных отсутствует.")
 
 
 @app.post("/settings")
@@ -148,13 +168,20 @@ async def set_settings(st: Settings):
         with conn.cursor() as cursor:
             try:
                 cursor.execute(
-                    "update skud_settings set settings = '" + st.settings + "' where id = " + str(st.deviceid) + ";")
+                    "update skud_settings set settings = '"
+                    + st.settings
+                    + "' where id = "
+                    + str(st.deviceid)
+                    + ";"
+                )
                 conn.commit()
                 return Response(status_code=200)
             except:
-                HTTPException(status_code=500, detail='Ошибка во время выполнения запроса.')
+                HTTPException(
+                    status_code=500, detail="Ошибка во время выполнения запроса."
+                )
     else:
-        HTTPException(status_code=500, detail='Подключение к базе данных отсутствует.')
+        HTTPException(status_code=500, detail="Подключение к базе данных отсутствует.")
 
 
 @app.get("/stages")
@@ -162,18 +189,21 @@ async def get_stages(deviceid: int | None = None):
     if conn:
         with conn.cursor() as cursor:
             try:
-                cursor.execute("select * from stages;")
+                cursor.execute(
+                    "select st.StageId, st.StageFullName, th.TheatreFullName from stages st join Theatres th ON st.TheatreId = th.TheatreId;"
+                )
                 records = cursor.fetchall()
                 return jsonable_encoder(records)
             except:
-                HTTPException(status_code=500, detail='Ошибка во время выполнения запроса.')
+                HTTPException(
+                    status_code=500, detail="Ошибка во время выполнения запроса."
+                )
     else:
-        HTTPException(status_code=500, detail='Подключение к базе данных отсутствует.')
+        HTTPException(status_code=500, detail="Подключение к базе данных отсутствует.")
 
 
 @app.post("/barcode")
 def get_barcode_data(cb: CheckBarcode):
-    print(cb)
     if cb.ischecktickettype:
         ischecktickettype = 1
     else:
@@ -185,17 +215,53 @@ def get_barcode_data(cb: CheckBarcode):
     if conn:
         try:
             if cb.stageid:
-                sqlstr = "exec psTicketCheckWeb '" + cb.barcode + "','" + cb.barcode.lstrip('0') + "'," + str(
-                    cb.deviceid) + "," + str(cb.actionid1) + "," + str(cb.actionid2) + "," + str(
-                    cb.actionid3) + "," + str(
-                    cb.actionid4) + "," + str(cb.actionid5) + "," + str(ischecktickettype) + "," \
-                         + str(ischeckenterrelease) + ", " + str(cb.stageid)
+                sqlstr = (
+                    "exec psTicketCheckWeb '"
+                    + cb.barcode
+                    + "','"
+                    + cb.barcode.lstrip("0")
+                    + "',"
+                    + str(cb.deviceid)
+                    + ","
+                    + str(cb.actionid1)
+                    + ","
+                    + str(cb.actionid2)
+                    + ","
+                    + str(cb.actionid3)
+                    + ","
+                    + str(cb.actionid4)
+                    + ","
+                    + str(cb.actionid5)
+                    + ","
+                    + str(ischecktickettype)
+                    + ","
+                    + str(ischeckenterrelease)
+                    + ", "
+                    + str(cb.stageid)
+                )
             else:
-                sqlstr = "exec psTicketCheckWeb '" + cb.barcode + "','" + cb.barcode.lstrip('0') + "'," + str(
-                    cb.deviceid) + "," + str(cb.actionid1) + "," + str(cb.actionid2) + "," + str(
-                    cb.actionid3) + "," + str(
-                    cb.actionid4) + "," + str(cb.actionid5) + "," + str(ischecktickettype) + "," \
-                         + str(ischeckenterrelease)
+                sqlstr = (
+                    "exec psTicketCheckWeb '"
+                    + cb.barcode
+                    + "','"
+                    + cb.barcode.lstrip("0")
+                    + "',"
+                    + str(cb.deviceid)
+                    + ","
+                    + str(cb.actionid1)
+                    + ","
+                    + str(cb.actionid2)
+                    + ","
+                    + str(cb.actionid3)
+                    + ","
+                    + str(cb.actionid4)
+                    + ","
+                    + str(cb.actionid5)
+                    + ","
+                    + str(ischecktickettype)
+                    + ","
+                    + str(ischeckenterrelease)
+                )
             with conn.cursor() as cursor:
                 cursor.execute(sqlstr)
                 a = cursor.fetchone()
@@ -203,7 +269,7 @@ def get_barcode_data(cb: CheckBarcode):
                 return JSONResponse(jsonable_encoder(a))
         except Exception as e:
             print(e)
-            HTTPException(status_code=500, detail='Ошибка во время выполнения запроса.')
+            HTTPException(status_code=500, detail="Ошибка во время выполнения запроса.")
 
 
 @app.websocket("/repertoire")
@@ -211,10 +277,17 @@ async def getreperoire(websocket: WebSocket):
     repertoire_old = dict()
     await manager.connect(websocket)
     a = await websocket.receive_json()
-    if a["action"] == 'init':
+    if a["action"] == "init":
         try:
             while True:
-                connws = pymssql.connect(sql_host, sql_username, sql_password, sql_db, charset='cp1251', as_dict=True)
+                connws = pymssql.connect(
+                    sql_host,
+                    sql_username,
+                    sql_password,
+                    sql_db,
+                    charset="cp1251",
+                    as_dict=True,
+                )
                 try:
                     if connws:
                         with connws.cursor() as cursor:
@@ -231,5 +304,5 @@ async def getreperoire(websocket: WebSocket):
             manager.disconnect(websocket)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8443)
