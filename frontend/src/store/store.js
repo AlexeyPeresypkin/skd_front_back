@@ -1,3 +1,4 @@
+import { ElMessageBox } from 'element-plus'
 import { defineStore } from 'pinia'
 
 import { useErrorLog } from './errorLog'
@@ -20,6 +21,8 @@ export const useStore = defineStore('store',{
 			axios: null,
 			ws: null,
 			loader: false,
+
+			token: localStorage.getItem('profticket_skd') || null
 		}
 	},
 	actions: {
@@ -32,7 +35,7 @@ export const useStore = defineStore('store',{
 		},
 		initializeAxios: function() {
 			axios.defaults.baseURL = `${import.meta.env.VITE_BASE_URL}:${import.meta.env.VITE_BASE_PORT}`
-
+			if (this.token) axios.defaults.headers.common['Authorization'] = `Bearer ${this.token}`
 			this.axios = axios.create()
 
 			this.axios.interceptors.response.use((response) => {
@@ -53,14 +56,28 @@ export const useStore = defineStore('store',{
 			this.ws.onopen = (event) => {
 				console.log('ws connection established')
 			}
-			this.ws.onmessage = (message) => {
+			this.ws.onmessage = async (message) => {
+				const resp = JSON.parse(message.data)
+				if (resp && resp.detail === 'invalid token') {
+					this.removeToken()
+					await ElMessageBox({
+						message:
+						`<div class='warning-message'>
+						  <span class='warning-title'>Время действия токена авторизации истекло. Через 10 секунд вы будете разлогинены.</span>
+						  <span class='warning-subtitle'>При возникновении этой ситуации несколько раз подряд при входе в систему обратитесь к техническому специалисту</span>
+            </div>`,
+						dangerouslyUseHTMLString: true,
+						showConfirmButton: false
+					})
+					return
+				}
 				this.setEvents(JSON.parse(message.data))
 			}
 			this.ws.onclose = (event) => {
 				console.log('ws connection was closed, trying to reconnect')
 				setTimeout(() => {
 					location.reload()
-				}, 5000)
+				}, 10000)
 			}
 			this.ws.onerror = (event) => {
 				console.log('an error occurred during ws connection, trying to reconnect')
@@ -72,7 +89,6 @@ export const useStore = defineStore('store',{
 		// requests
 		getRepertoire: async function() {
 			const settings = useSettings()
-
 			try {
 				const res = await this.axios.get('/getrepertoire', {
 					params: {
@@ -90,6 +106,7 @@ export const useStore = defineStore('store',{
 
 			this.ws.send(JSON.stringify({
 				action: 'init',
+				token: this.token,
 				deviceId: settings.getDeviceId
 			}))
 		},
@@ -163,5 +180,15 @@ export const useStore = defineStore('store',{
 				}
 			}
 		},
+		setToken: function(token) {
+			this.token = token
+			window.localStorage.setItem('profticket_skd', token)
+			this.axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+		},
+		removeToken: function() {
+			this.token = null
+			window.localStorage.removeItem('profticket_skd')
+			this.axios.defaults.headers.common['Authorization'] = ''
+		}
 	},
 })

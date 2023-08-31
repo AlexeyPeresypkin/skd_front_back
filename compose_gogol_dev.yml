@@ -7,6 +7,8 @@ services:
   backend:
     build: ./backend
     container_name: gogol_backend
+    volumes:
+      - ./backend:/app
     command: gunicorn -b 0.0.0.0:8002 -k uvicorn.workers.UvicornWorker main:app
     ports:
       - "8002:8002"
@@ -22,16 +24,15 @@ services:
       - ./frontend/nginx_dev/gogol/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./frontend/nginx_dev/gogol/configs:/etc/nginx/conf.d:ro
     ports:
-      - "80:80"
       - "81:81"
       - "82:82"
     restart: always
 
-#  nginx:
-#    image: nginx:1.22.1
-#    volumes:
-#      - ./nginx_main/nginx.conf:/etc/nginx/nginx.conf:ro
-#      - ./nginx_main/configs:/etc/nginx/conf.d:ro
-#    ports:
-#      - "80:80"
-#      - "443:443"
+  nginx:
+    image: nginx:1.22.1
+    volumes:
+      - ./nginx_main/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx_main/configs:/etc/nginx/conf.d:ro
+    ports:
+      - "80:80"
+      - "443:443"

@@ -5,12 +5,20 @@ from datetime import date, datetime, time
 
 import pymssql
 import uvicorn
-from fastapi import FastAPI, HTTPException, WebSocket, Response, WebSocketDisconnect
+from fastapi import (
+    FastAPI,
+    HTTPException,
+    WebSocket,
+    Response,
+    WebSocketDisconnect,
+    Depends,
+)
 from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from starlette.middleware.httpsredirect import HTTPSRedirectMiddleware
+
+from auth import AuthService, SigIn, get_current_user
 
 
 def default(obj):
@@ -27,7 +35,6 @@ def default(obj):
 
 app = FastAPI()
 origins = ["*"]
-# app.add_middleware(HTTPSRedirectMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -35,11 +42,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+from dotenv import load_dotenv
+
+load_dotenv()
 
 sql_username = os.environ.get("POSTGRES_USER")
 sql_password = os.environ.get("POSTGRES_PASSWORD")
 sql_host = os.environ.get("POSTGRES_HOST")
 sql_db = os.environ.get("POSTGRES_DB")
+
 conn = pymssql.connect(
     sql_host, sql_username, sql_password, sql_db, charset="cp1251", as_dict=True
 )
@@ -94,7 +105,7 @@ async def root():
 
 
 @app.get("/getrepertoire")
-async def get_repertoire(st: int | None = None):
+async def get_repertoire(st: int | None = None, user=Depends(get_current_user)):
     global stageid, init
     if st:
         stageid = st
@@ -113,7 +124,7 @@ async def get_repertoire(st: int | None = None):
 
 
 @app.get("/settings")
-async def get_settings(deviceid: int | None = None):
+async def get_settings(deviceid: int | None = None, user=Depends(get_current_user)):
     if conn:
         with conn.cursor() as cursor:
             if deviceid is None:
@@ -163,7 +174,7 @@ async def get_settings(deviceid: int | None = None):
 
 
 @app.post("/settings")
-async def set_settings(st: Settings):
+async def set_settings(st: Settings, user=Depends(get_current_user)):
     if conn:
         with conn.cursor() as cursor:
             try:
@@ -185,7 +196,7 @@ async def set_settings(st: Settings):
 
 
 @app.get("/stages")
-async def get_stages(deviceid: int | None = None):
+async def get_stages(deviceid: int | None = None, user=Depends(get_current_user)):
     if conn:
         with conn.cursor() as cursor:
             try:
@@ -203,7 +214,7 @@ async def get_stages(deviceid: int | None = None):
 
 
 @app.post("/barcode")
-def get_barcode_data(cb: CheckBarcode):
+def get_barcode_data(cb: CheckBarcode, user=Depends(get_current_user)):
     if cb.ischecktickettype:
         ischecktickettype = 1
     else:
@@ -276,9 +287,17 @@ def get_barcode_data(cb: CheckBarcode):
 async def getreperoire(websocket: WebSocket):
     repertoire_old = dict()
     await manager.connect(websocket)
-    a = await websocket.receive_json()
-    if a["action"] == "init":
-        try:
+    try:
+        a = await websocket.receive_json()
+        print(a)
+        if a["action"] == "init":
+            token = a.get('token', 'mock_token')
+            try:
+                AuthService.verify_token(token)
+            except HTTPException:
+                await websocket.send_json({'detail': 'invalid token'})
+                await websocket.close()
+                return
             while True:
                 connws = pymssql.connect(
                     sql_host,
@@ -300,9 +319,20 @@ async def getreperoire(websocket: WebSocket):
                     print(e)
                 connws.close()
                 await asyncio.sleep(20)
-        except WebSocketDisconnect:
-            manager.disconnect(websocket)
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
+
+
+@app.post("/auth/sign-in")
+async def sign_in(
+    auth_data: SigIn,
+    auth_service: AuthService = Depends(),
+):
+    return auth_service.authenticate_user(
+        auth_data.username,
+        auth_data.password,
+    )
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8443)
+    uvicorn.run('backend.main:app', host="0.0.0.0", port=8002, reload=True, workers=1)

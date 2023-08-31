@@ -1,6 +1,6 @@
 #  FAQ https://mindsers.blog/post/https-using-nginx-certbot-docker/
-#  docker-compose -f .\compose_gogol.yml up -d --build
-#  docker compose run --rm certbot renew
+#  docker-compose -f compose_gogol.yml up -d --build
+#  docker compose run --rm certbot renew (обновление сертификатов)
 
 version: '3.8'
 

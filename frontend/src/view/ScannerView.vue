@@ -138,6 +138,8 @@ async function saveSettings() {
 
 onMounted(async () => {
   await settings.getSettings()
+  store.initializeWss()
+
   selectedStageId.value = settings.getStageId || null
   colors.success = settings.getColors.success
   colors.pushkin = settings.getColors.pushkin
@@ -281,14 +283,15 @@ onMounted(async () => {
       <div class='select-wrapper'>
         <el-select
           v-model='selectedStageId'
+          class='stage-select'
           placeholder='Выберите сцену'
           :clearable='true'
-          class='stage-select'
+          :fit-input-width='true'
         >
           <el-option
             v-for='stage in settings.stagesForSelect'
             :key='stage'
-            :label='stage.label'
+            :label='`${stage.label} (${stage.theatre})`'
             :value='stage.value'
           />
         </el-select>

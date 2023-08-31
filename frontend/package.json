@@ -2,11 +2,15 @@
   "name": "passage_control_frontend",
   "version": "1.0.0",
   "scripts": {
-    "dev": "vite",
+    "dev": "cross-env VITE_ATOL=false vite",
+    "dev_atol": "cross-env VITE_ATOL=true vite",
     "build": "cross-env VITE_ATOL=false vite build",
     "build_atol": "cross-env VITE_ATOL=true vite build"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^6.4.2",
+    "@fortawesome/free-solid-svg-icons": "^6.4.2",
+    "@fortawesome/vue-fontawesome": "^3.0.3",
     "@zxing/library": "^0.20.0",
     "axios": "^1.4.0",
     "element-plus": "^2.3.4",

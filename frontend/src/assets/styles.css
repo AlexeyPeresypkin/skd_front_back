@@ -243,6 +243,26 @@ html, body {
   padding: 10px;
 }
 
+.warning-message {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.warning-title {
+  text-align: center;
+  font-weight: bold;
+  font-size: 20px;
+  font-family: Aller, sans-serif;
+}
+.warning-subtitle {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 12px;
+  font-family: Aller, sans-serif;
+  line-height: 1;
+}
+
 @media (max-width: 800px), (orientation: landscape) and (max-height: 700px), (max-height: 700px){
   html {
     font-size: 10px;

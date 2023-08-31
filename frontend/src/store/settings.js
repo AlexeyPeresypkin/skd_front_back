@@ -61,7 +61,8 @@ export const useSettings = defineStore('settings', {
       remoteStages.forEach(stage => {
         this.stagesForSelect.push({
           label: stage.StageFullName,
-          value: stage.StageId
+          value: stage.StageId,
+          theatre: stage.TheatreFullName
         })
       })
     },

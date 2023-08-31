@@ -14,7 +14,6 @@ onBeforeMount(async () => {
 })
 onMounted(() => {
   store.initializeAxios()
-  store.initializeWss()
 })
 </script>
 
