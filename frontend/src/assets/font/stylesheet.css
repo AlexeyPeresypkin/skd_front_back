@@ -1,0 +1,84 @@
+@font-face {
+    font-family: 'Aller Display';
+    src: url('AllerDisplay.eot');
+    src: local('Aller Display'), local('AllerDisplay'),
+        url('AllerDisplay.eot?#iefix') format('embedded-opentype'),
+        url('AllerDisplay.woff2') format('woff2'),
+        url('AllerDisplay.woff') format('woff'),
+        url('AllerDisplay.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Aller';
+    src: url('Aller-Italic.eot');
+    src: local('Aller Italic'), local('Aller-Italic'),
+        url('Aller-Italic.eot?#iefix') format('embedded-opentype'),
+        url('Aller-Italic.woff2') format('woff2'),
+        url('Aller-Italic.woff') format('woff'),
+        url('Aller-Italic.ttf') format('truetype');
+    font-weight: normal;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Aller';
+    src: url('Aller-LightItalic.eot');
+    src: local('Aller Light Italic'), local('Aller-LightItalic'),
+        url('Aller-LightItalic.eot?#iefix') format('embedded-opentype'),
+        url('Aller-LightItalic.woff2') format('woff2'),
+        url('Aller-LightItalic.woff') format('woff'),
+        url('Aller-LightItalic.ttf') format('truetype');
+    font-weight: 300;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Aller';
+    src: url('Aller-BoldItalic.eot');
+    src: local('Aller Bold Italic'), local('Aller-BoldItalic'),
+        url('Aller-BoldItalic.eot?#iefix') format('embedded-opentype'),
+        url('Aller-BoldItalic.woff2') format('woff2'),
+        url('Aller-BoldItalic.woff') format('woff'),
+        url('Aller-BoldItalic.ttf') format('truetype');
+    font-weight: bold;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Aller';
+    src: url('Aller.eot');
+    src: local('Aller'),
+        url('Aller.eot?#iefix') format('embedded-opentype'),
+        url('Aller.woff2') format('woff2'),
+        url('Aller.woff') format('woff'),
+        url('Aller.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Aller';
+    src: url('Aller-Bold.eot');
+    src: local('Aller Bold'), local('Aller-Bold'),
+        url('Aller-Bold.eot?#iefix') format('embedded-opentype'),
+        url('Aller-Bold.woff2') format('woff2'),
+        url('Aller-Bold.woff') format('woff'),
+        url('Aller-Bold.ttf') format('truetype');
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Aller';
+    src: url('Aller-Light.eot');
+    src: local('Aller Light'), local('Aller-Light'),
+        url('Aller-Light.eot?#iefix') format('embedded-opentype'),
+        url('Aller-Light.woff2') format('woff2'),
+        url('Aller-Light.woff') format('woff'),
+        url('Aller-Light.ttf') format('truetype');
+    font-weight: 300;
+    font-style: normal;
+}
+
