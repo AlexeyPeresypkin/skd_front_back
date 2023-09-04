@@ -68,7 +68,8 @@ class AuthService:
         payload = {
             "iat": now,
             "nbf": now,
-            "exp": now + timedelta(hours=int(JWT_EXPIRES_H)),
+            # "exp": now + timedelta(minutes=int(JWT_EXPIRES_H)),
+            "exp": now + timedelta(minutes=1),
             "sub": username,
             "user": username,
         }
