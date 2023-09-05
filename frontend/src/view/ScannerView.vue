@@ -292,9 +292,9 @@ onMounted(async () => {
         <el-select
           v-model='selectedStageId'
           class='stage-select'
+          popper-class='popper-stage-select'
           placeholder='Выберите сцену'
           :clearable='true'
-          :fit-input-width='true'
           :filterable='true'
         >
           <el-option

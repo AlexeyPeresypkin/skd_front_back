@@ -67,7 +67,36 @@ export const useSettings = defineStore('settings', {
         })
       })
 
-      this.stagesForSelect.sort()
+      this.stagesForSelect.sort((a, b) => {
+        const firstLabel = a.label.toLowerCase()
+        const secondLabel = b.label.toLowerCase()
+
+        const firstTheatre = a.theatre.toLowerCase()
+        const secondTheatre = b.theatre.toLowerCase()
+
+        const firstGate = a.gate?.toLowerCase()
+        const secondGate = b.gate?.toLowerCase()
+
+        switch(true) {
+          case !firstGate && !secondGate:
+            if (firstTheatre === secondTheatre) {
+              return firstLabel < secondLabel ? -1 : firstLabel > secondLabel ? 1 : 0
+            } else {
+              return firstTheatre > secondTheatre ? 1 : -1
+            }
+          case !!(firstGate && secondGate):
+            if (firstGate > secondGate) return 1
+            if (firstGate < secondGate) return -1
+
+            if (firstTheatre === secondTheatre) {
+              return firstLabel < secondLabel ? -1 : firstLabel > secondLabel ? 1 : 0
+            } else {
+              return firstTheatre > secondTheatre ? 1 : -1
+            }
+          case !!(!firstGate && secondGate): return -1
+          case !!(firstGate && !secondGate): return 1
+        }
+      })
     },
     setSelectedEvents: function(ev, value) {
       if (ev) {
