@@ -62,9 +62,12 @@ export const useSettings = defineStore('settings', {
         this.stagesForSelect.push({
           label: stage.StageFullName,
           value: stage.StageId,
-          theatre: stage.TheatreFullName
+          theatre: stage.TheatreFullName,
+          gate: stage.BackGateName
         })
       })
+
+      this.stagesForSelect.sort()
     },
     setSelectedEvents: function(ev, value) {
       if (ev) {
@@ -79,20 +82,14 @@ export const useSettings = defineStore('settings', {
     getSettings: async function() {
       const store = useStore()
 
-      try {
-        const settings = await store.axios.get('/settings', {
-          params: {
-            deviceid: this.deviceId
-          }
-        })
-
-        this.setDeviceId(settings.data.deviceid)
-
-        if (settings.data.settings) {
-          await this.setSettings(JSON.parse(settings.data.settings))
+      const settings = await store.axios.get('/settings', {
+        params: {
+          deviceid: this.deviceId
         }
-      } catch(e) {
-        console.log('getSettings || settings.js, error => ', e)
+      })
+      this.setDeviceId(settings.data.deviceid)
+      if (settings.data.settings) {
+        await this.setSettings(JSON.parse(settings.data.settings))
       }
     },
     getStagesForSelect: async function() {

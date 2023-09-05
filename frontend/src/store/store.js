@@ -1,6 +1,7 @@
 import { ElMessageBox } from 'element-plus'
 import { defineStore } from 'pinia'
 
+import { useRouter } from 'vue-router'
 import { useErrorLog } from './errorLog'
 import { useSettings } from './settings'
 
@@ -34,6 +35,8 @@ export const useStore = defineStore('store',{
 			}, 1000)
 		},
 		initializeAxios: function() {
+			const router = useRouter()
+
 			axios.defaults.baseURL = `${import.meta.env.VITE_BASE_URL}:${import.meta.env.VITE_BASE_PORT}`
 			if (this.token) axios.defaults.headers.common['Authorization'] = `Bearer ${this.token}`
 			this.axios = axios.create()
@@ -41,19 +44,37 @@ export const useStore = defineStore('store',{
 			this.axios.interceptors.response.use((response) => {
 				return response
 			}, async (error) => {
-				ElNotification({
-					title: 'Внимание',
-					type: 'error',
-					message: 'Возникла ошибка'
-				})
-
+				switch(true) {
+					case error.response.status === 401 && error.response.data.detail !== 'Incorrect username or password':
+						this.removeToken()
+						await ElMessageBox({
+							message:
+								`<div class='warning-message'>
+						 			<span class='warning-title'>Время действия токена авторизации истекло. <br/> Вы будете перенаправлены на страницу авторизации.</span>
+<!--						  <span class='warning-subtitle'>При возникновении этой ситуации несколько раз подряд при входе в систему обратитесь к техническому специалисту</span>-->
+            		</div>`,
+							dangerouslyUseHTMLString: true,
+							showConfirmButton: true,
+							closeOnClickModal: false,
+							closeOnPressEscape: false,
+							showClose: true,
+						})
+						await router.push({name: 'Login'})
+						break
+					default:
+						ElNotification({
+							title: 'Внимание',
+							type: 'error',
+							message: 'Возникла ошибка'
+						})
+				}
 				return Promise.reject(error)
 			})
 		},
 		initializeWss: function() {
 			this.ws = new WebSocket(`${import.meta.env.VITE_WSS_URL}:${import.meta.env.VITE_BASE_PORT}/repertoire`)
 
-			this.ws.onopen = (event) => {
+			this.ws.onopen = () => {
 				console.log('ws connection established')
 			}
 			this.ws.onmessage = async (message) => {
@@ -63,8 +84,8 @@ export const useStore = defineStore('store',{
 					await ElMessageBox({
 						message:
 						`<div class='warning-message'>
-						  <span class='warning-title'>Время действия токена авторизации истекло. Через 10 секунд вы будете разлогинены.</span>
-						  <span class='warning-subtitle'>При возникновении этой ситуации несколько раз подряд при входе в систему обратитесь к техническому специалисту</span>
+						 	<span class='warning-title'>Время действия токена авторизации истекло. <br/> Вы будете перенаправлены на страницу авторизации.</span>
+<!--						  <span class='warning-subtitle'>При возникновении этой ситуации несколько раз подряд при входе в систему обратитесь к техническому специалисту</span>-->
             </div>`,
 						dangerouslyUseHTMLString: true,
 						showConfirmButton: false
@@ -73,13 +94,13 @@ export const useStore = defineStore('store',{
 				}
 				this.setEvents(JSON.parse(message.data))
 			}
-			this.ws.onclose = (event) => {
+			this.ws.onclose = () => {
 				console.log('ws connection was closed, trying to reconnect')
 				setTimeout(() => {
 					location.reload()
-				}, 10000)
+				}, 5000)
 			}
-			this.ws.onerror = (event) => {
+			this.ws.onerror = () => {
 				console.log('an error occurred during ws connection, trying to reconnect')
 				setTimeout(() => {
 					location.reload()
@@ -132,24 +153,19 @@ export const useStore = defineStore('store',{
 			if (settings.stageId) {
 				request.stageid = settings.stageId
 			}
-			
-			try {
-				const res = await this.axios.post('/barcode', request)
 
-				this.ticketCheckResult = res.data
-				this.ticketCheckResult.TicketNumber = this.ticketNumber
-				this.ticketNumber = null
+			const res = await this.axios.post('/barcode', request)
 
-				if (res.data.Result !== 0) {
-					this.ticketCheckResult.ErrorTime = Date.now()
-					errorLog.setLog(this.ticketCheckResult)
-				}
+			this.ticketCheckResult = res.data
+			this.ticketCheckResult.TicketNumber = this.ticketNumber
+			this.ticketNumber = null
 
-				this.loader = false
-			} catch(e) {
-				console.log('checkTicket || store.js error => ', e)
-				this.loader = false
+			if (res.data.Result !== 0) {
+				this.ticketCheckResult.ErrorTime = Date.now()
+				errorLog.setLog(this.ticketCheckResult)
 			}
+
+			this.loader = false
 		},
 		// helper
 		setEvents: function(remoteEvents) {

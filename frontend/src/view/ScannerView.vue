@@ -36,19 +36,19 @@ const showCameraButton = computed(() => {
 
 // focus on input
 watch(stageModal, (val) => {
-  if(!val) ticketNumberContainer.value.focus()
+  if(!val && ticketNumberContainer.value) ticketNumberContainer.value.focus()
 })
 watch(cameraModal, (val) => {
-  if(!val) ticketNumberContainer.value.focus()
+  if(!val && ticketNumberContainer.value) ticketNumberContainer.value.focus()
 })
 watch(() => store.ticketNumber, (val) => {
-  if (!val) ticketNumberContainer.value.focus()
+  if (!val && ticketNumberContainer.value) ticketNumberContainer.value.focus()
 })
 watch(() => settings.ticketType, () => {
-  ticketNumberContainer.value.focus()
+  if (ticketNumberContainer.value) ticketNumberContainer.value.focus()
 })
 watch(() => settings.entranceType, () => {
-  ticketNumberContainer.value.focus()
+  if (ticketNumberContainer.value) ticketNumberContainer.value.focus()
 })
 
 // log
@@ -84,8 +84,12 @@ function formatDate(date) {
 
 // ticket request
 async function checkTicket() {
-	await store.checkTicket()
-  ticketNumberContainer.value.focus()
+  try {
+    await store.checkTicket()
+    ticketNumberContainer.value.focus()
+  } catch(e) {
+    console.log('ScannerView.vue || checkTicket, error => ', e)
+  }
 }
 
 // settings
@@ -137,20 +141,24 @@ async function saveSettings() {
 }
 
 onMounted(async () => {
-  await settings.getSettings()
-  store.initializeWss()
+  try {
+    await settings.getSettings()
+    store.initializeWss()
 
-  selectedStageId.value = settings.getStageId || null
-  colors.success = settings.getColors.success
-  colors.pushkin = settings.getColors.pushkin
-  colors.error = settings.getColors.error
-  await settings.getStagesForSelect()
+    selectedStageId.value = settings.getStageId || null
+    colors.success = settings.getColors.success
+    colors.pushkin = settings.getColors.pushkin
+    colors.error = settings.getColors.error
+    await settings.getStagesForSelect()
 
-  if (!settings.stageId && settings.stageId !== 0) openSelectStageModal()
-  if (settings.stageId || settings.stageId === 0) {
-		await store.getRepertoire()
-		store.getRepertoireWss()
-	}
+    if (!settings.stageId && settings.stageId !== 0) openSelectStageModal()
+    if (settings.stageId || settings.stageId === 0) {
+      await store.getRepertoire()
+      store.getRepertoireWss()
+    }
+  } catch(e) {
+    console.log('ScannerView.vue || onMounted, error => ', e)
+  }
 })
 </script>
 
@@ -287,11 +295,12 @@ onMounted(async () => {
           placeholder='Выберите сцену'
           :clearable='true'
           :fit-input-width='true'
+          :filterable='true'
         >
           <el-option
             v-for='stage in settings.stagesForSelect'
             :key='stage'
-            :label='`${stage.label} (${stage.theatre})`'
+            :label='`${stage.label} ${stage.gate ? `<<${stage.gate}>>` : ""} (${stage.theatre})`'
             :value='stage.value'
           />
         </el-select>
