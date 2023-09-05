@@ -201,14 +201,17 @@ async def get_stages(deviceid: int | None = None, user=Depends(get_current_user)
         with conn.cursor() as cursor:
             try:
                 cursor.execute(
-                    "select st.StageId, st.StageFullName, th.TheatreFullName from stages st join Theatres th ON st.TheatreId = th.TheatreId;"
+                    """
+                    select st.StageId, st.StageFullName, th.TheatreFullName, BG.BackGateName
+                    from stages st
+                             join Theatres th ON st.TheatreId = th.TheatreId
+                    left join BackGates BG on st.GateID = BG.BackGateID;
+                    """
                 )
                 records = cursor.fetchall()
                 return jsonable_encoder(records)
             except:
-                HTTPException(
-                    status_code=500, detail="Ошибка во время выполнения запроса."
-                )
+                HTTPException(status_code=500, detail="Ошибка во время выполнения запроса.")
     else:
         HTTPException(status_code=500, detail="Подключение к базе данных отсутствует.")
 
@@ -335,4 +338,4 @@ async def sign_in(
 
 
 if __name__ == "__main__":
-    uvicorn.run('backend.main:app', host="0.0.0.0", port=8002, reload=True, workers=1)
+    uvicorn.run('backend.main:app', host="0.0.0.0", port=8003, reload=True, workers=1)

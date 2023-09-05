@@ -57,19 +57,15 @@ class AuthService:
         except JWTError:
             raise exception from None
         username = payload.get("user")
-        dt_obj = datetime.fromtimestamp(payload.get("exp"))
-        if dt_obj < datetime.utcnow():
-            raise HTTPException(status.HTTP_401_UNAUTHORIZED, "token expired", headers={"WWW-Authenticate": "Bearer"})
         return username
 
     @classmethod
     def create_token(cls, username: str) -> Token:
-        now = datetime.utcnow()
+        now = datetime.now()
         payload = {
             "iat": now,
             "nbf": now,
-            # "exp": now + timedelta(minutes=int(JWT_EXPIRES_H)),
-            "exp": now + timedelta(minutes=1),
+            "exp": now + timedelta(minutes=int(JWT_EXPIRES_H)),
             "sub": username,
             "user": username,
         }
