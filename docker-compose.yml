@@ -1,5 +1,5 @@
 #  FAQ https://mindsers.blog/post/https-using-nginx-certbot-docker/
-#  docker-compose up -d --build
+#  docker compose up -d --build
 #  docker compose run --rm certbot renew (обновление сертификатов)
 
 version: '3.8'
@@ -15,7 +15,7 @@ services:
       - ./backend/.env_gogol
     restart: always
 
-  frontend:
+  frontend_gogol:
     build:
       context: ./frontend
       dockerfile: ./gogol.Dockerfile

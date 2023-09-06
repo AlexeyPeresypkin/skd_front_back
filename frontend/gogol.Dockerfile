@@ -18,5 +18,3 @@ FROM nginx:stable-alpine as production-stage
 COPY --from=build-stage1 /app/dist /app
 COPY --from=build-stage2 /app/dist /app1
 CMD ["nginx", "-g", "daemon off;"]
-
-

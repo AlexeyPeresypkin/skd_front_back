@@ -61,11 +61,11 @@ class AuthService:
 
     @classmethod
     def create_token(cls, username: str) -> Token:
-        now = datetime.now()
+        now = datetime.utcnow()
         payload = {
             "iat": now,
             "nbf": now,
-            "exp": now + timedelta(minutes=int(JWT_EXPIRES_H)),
+            "exp": now + timedelta(hours=int(JWT_EXPIRES_H)),
             "sub": username,
             "user": username,
         }
