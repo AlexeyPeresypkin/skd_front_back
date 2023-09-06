@@ -1,35 +1,44 @@
 #  FAQ https://mindsers.blog/post/https-using-nginx-certbot-docker/
-#  docker-compose -f compose_gogol.yml up -d --build
+#  docker-compose up -d --build
 #  docker compose run --rm certbot renew (обновление сертификатов)
 
 version: '3.8'
 
 services:
 
-  backend:
+  backend_gogol:
     build: ./backend
-    container_name: gogol_backend
     command: gunicorn -b 0.0.0.0:8002 --keyfile=./certbot/conf/live/skd.profticket.ru/privkey.pem --certfile=./certbot/conf/live/skd.profticket.ru/cert.pem -k uvicorn.workers.UvicornWorker main:app
     ports:
       - "8002:8002"
     env_file:
       - ./backend/.env_gogol
+    restart: always
 
   frontend:
     build:
       context: ./frontend
       dockerfile: ./gogol.Dockerfile
-    container_name: gogol_frontend
     volumes:
-      - ./frontend/nginx/gogol/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./frontend/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./frontend/nginx/gogol/configs:/etc/nginx/conf.d:ro
+      - ./backend/certbot/www:/var/www/certbot/:ro
+      - ./backend/certbot/conf/:/etc/nginx/ssl/:ro
+    ports:
+      - "81:81"
+      - "82:82"
+    restart: always
+
+  nginx:
+    image: nginx:1.22.1
+    volumes:
+      - ./nginx_main/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx_main/configs:/etc/nginx/conf.d:ro
       - ./backend/certbot/www:/var/www/certbot/:ro
       - ./backend/certbot/conf/:/etc/nginx/ssl/:ro
     ports:
       - "80:80"
       - "443:443"
-      - "81:81"
-      - "82:82"
     restart: always
 
   certbot:
