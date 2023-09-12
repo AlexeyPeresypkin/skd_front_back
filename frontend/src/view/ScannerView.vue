@@ -21,6 +21,7 @@ const stageModal = ref(false)
 const cameraModal = ref(false)
 const ticketNumberContainer = ref(null)
 const selectedStageId = ref(null)
+const atolMode = ref(false)
 const colors = reactive({
   success: '',
   error: '',
@@ -31,7 +32,7 @@ const isEventChecked = computed(() => (ev) => {
 	return !!settings.selectedEvents.find(event => event === ev)
 })
 const showCameraButton = computed(() => {
-	return !(import.meta.env.VITE_ATOL.toLowerCase() === 'true')
+	return !settings.getAtolMode
 })
 
 // focus on input
@@ -50,6 +51,9 @@ watch(() => settings.ticketType, () => {
 watch(() => settings.entranceType, () => {
   if (ticketNumberContainer.value) ticketNumberContainer.value.focus()
 })
+watch(() => settings.atolMode, async (val) => {
+	val ? await camera.destroyInstance() : await camera.initialize()
+})
 
 // log
 function showLog() {
@@ -62,6 +66,7 @@ function openSelectStageModal() {
   colors.success = settings.getColors.success
   colors.pushkin = settings.getColors.pushkin
   colors.error = settings.getColors.error
+  atolMode.value = settings.getAtolMode
   stageModal.value = true
 }
 function closeSelectStageModal() {
@@ -96,10 +101,11 @@ async function checkTicket() {
 function clearSelect() {
   selectedStageId.value = null
 }
-async function saveSelectedStage() {
+async function saveLocalSettings() {
   await settings.saveSettings({
     stageId: selectedStageId.value || 0,
-    colors
+    colors,
+    atolMode: atolMode.value
   })
   settings.setStageId(selectedStageId.value || 0)
 
@@ -143,18 +149,24 @@ async function saveSettings() {
 onMounted(async () => {
   try {
     await settings.getSettings()
-    store.initializeWss()
+    await store.initializeWss()
 
     selectedStageId.value = settings.getStageId || null
     colors.success = settings.getColors.success
     colors.pushkin = settings.getColors.pushkin
     colors.error = settings.getColors.error
+    atolMode.value = settings.atolMode
     await settings.getStagesForSelect()
 
     if (!settings.stageId && settings.stageId !== 0) openSelectStageModal()
     if (settings.stageId || settings.stageId === 0) {
       await store.getRepertoire()
       store.getRepertoireWss()
+    }
+
+		if(!settings.atolMode) {
+			console.log('camera initialize')
+			await camera.initialize()
     }
   } catch(e) {
     console.log('ScannerView.vue || onMounted, error => ', e)
@@ -312,6 +324,13 @@ onMounted(async () => {
           Очистить
         </el-button>
       </div>
+      <div class='checkbox-wrapper'>
+        <el-checkbox
+                v-model='atolMode'
+                label='Сканер АТОЛ'
+                :border='true'
+        />
+      </div>
       <div class='color-wrapper'>
         <div class='color-title'>Цветовая схема:</div>
         <el-form label-position='left' label-width='150'>
@@ -337,7 +356,7 @@ onMounted(async () => {
         </el-button>
         <el-button
           type='primary'
-          @click='saveSelectedStage'
+          @click='saveLocalSettings'
         >
           Сохранить
         </el-button>

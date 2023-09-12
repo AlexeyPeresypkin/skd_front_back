@@ -72,40 +72,45 @@ export const useStore = defineStore('store',{
 			})
 		},
 		initializeWss: function() {
-			this.ws = new WebSocket(`${import.meta.env.VITE_WSS_URL}:${import.meta.env.VITE_BASE_PORT}/repertoire`)
+			return new Promise((resolve, reject) => {
+				this.ws = new WebSocket(`${import.meta.env.VITE_WSS_URL}:${import.meta.env.VITE_BASE_PORT}/repertoire`)
 
-			this.ws.onopen = () => {
-				console.log('ws connection established')
-			}
-			this.ws.onmessage = async (message) => {
-				const resp = JSON.parse(message.data)
-				if (resp && resp.detail === 'invalid token') {
-					this.removeToken()
-					await ElMessageBox({
-						message:
-						`<div class='warning-message'>
+				this.ws.onopen = () => {
+					console.log('ws connection established')
+					resolve()
+				}
+				this.ws.onmessage = async (message) => {
+					const resp = JSON.parse(message.data)
+					if (resp && resp.detail === 'invalid token') {
+						this.removeToken()
+						await ElMessageBox({
+							message:
+								`<div class='warning-message'>
 						 	<span class='warning-title'>Время действия токена авторизации истекло. <br/> Вы будете перенаправлены на страницу авторизации.</span>
 <!--						  <span class='warning-subtitle'>При возникновении этой ситуации несколько раз подряд при входе в систему обратитесь к техническому специалисту</span>-->
             </div>`,
-						dangerouslyUseHTMLString: true,
-						showConfirmButton: false
-					})
-					return
+							dangerouslyUseHTMLString: true,
+							showConfirmButton: false
+						})
+						return
+					}
+					this.setEvents(JSON.parse(message.data))
 				}
-				this.setEvents(JSON.parse(message.data))
-			}
-			this.ws.onclose = () => {
-				console.log('ws connection was closed, trying to reconnect')
-				setTimeout(() => {
-					location.reload()
-				}, 5000)
-			}
-			this.ws.onerror = () => {
-				console.log('an error occurred during ws connection, trying to reconnect')
-				setTimeout(() => {
-					location.reload()
-				}, 5000)
-			}
+				this.ws.onclose = () => {
+					console.log('ws connection was closed, trying to reconnect')
+					setTimeout(() => {
+						location.reload()
+					}, 5000)
+					reject()
+				}
+				this.ws.onerror = () => {
+					console.log('an error occurred during ws connection, trying to reconnect')
+					setTimeout(() => {
+						location.reload()
+					}, 5000)
+					reject()
+				}
+			})
 		},
 		// requests
 		getRepertoire: async function() {

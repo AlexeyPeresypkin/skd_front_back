@@ -6,6 +6,7 @@ export const useSettings = defineStore('settings', {
   state() {
     return {
       deviceId: localStorage.getItem('barcode_checker_deviceId') || null,
+      atolMode: false,
       entranceType: false,
       ticketType: false,
       stageId: null,
@@ -30,6 +31,9 @@ export const useSettings = defineStore('settings', {
     },
     getSelectedEvents(state) {
       return state.selectedEvents
+    },
+    getAtolMode(state) {
+      return state.atolMode
     }
   },
   actions: {
@@ -48,6 +52,7 @@ export const useSettings = defineStore('settings', {
         this.colors.success = remoteSettings.colors.success
         this.colors.pushkin = remoteSettings.colors.pushkin
         this.colors.error = remoteSettings.colors.error
+        this.atolMode = remoteSettings.atolMode
         if (Array.isArray(remoteSettings.selectedEvents)) {
           remoteSettings.selectedEvents.forEach(event => {
             this.selectedEvents.push(event)
@@ -111,14 +116,18 @@ export const useSettings = defineStore('settings', {
     getSettings: async function() {
       const store = useStore()
 
-      const settings = await store.axios.get('/settings', {
-        params: {
-          deviceid: this.deviceId
+      try {
+        const settings = await store.axios.get('/settings', {
+          params: {
+            deviceid: this.deviceId
+          }
+        })
+        this.setDeviceId(settings.data.deviceid)
+        if (settings.data.settings) {
+          await this.setSettings(JSON.parse(settings.data.settings))
         }
-      })
-      this.setDeviceId(settings.data.deviceid)
-      if (settings.data.settings) {
-        await this.setSettings(JSON.parse(settings.data.settings))
+      } catch(e) {
+        console.log('getSettings || settings.js || error => ', e)
       }
     },
     getStagesForSelect: async function() {
@@ -143,7 +152,8 @@ export const useSettings = defineStore('settings', {
         entranceType: this.entranceType,
         ticketType: this.ticketType,
         selectedEvents: this.selectedEvents,
-        colors: this.colors
+        colors: this.colors,
+        atolMode: this.atolMode
       }
       Object.assign(settings, newSettings)
 
@@ -153,10 +163,13 @@ export const useSettings = defineStore('settings', {
           settings: JSON.stringify(settings)
         })
 
-        if (newSettings.colors) {
+        if (Object.hasOwn(newSettings, 'colors')) {
           this.colors.success = newSettings.colors.success
           this.colors.pushkin = newSettings.colors.pushkin
           this.colors.error = newSettings.colors.error
+        }
+        if (Object.hasOwn(newSettings, 'atolMode')) {
+          this.atolMode = newSettings.atolMode
         }
 
       }catch(e) {

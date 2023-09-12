@@ -33,6 +33,17 @@ export const useCamera = defineStore('camera', {
 				})
 			}
     },
+		async destroyInstance() {
+			try {
+				delete this.reader
+			} catch(e) {
+				console.log('destroyInstance || camera.js, error => ', e)
+				ElMessage({
+					type: 'error',
+					message: 'Не удалось отключить камеру'
+				})
+			}
+		},
     scan(container) {
       return new Promise(async (resolve) => {
         try {

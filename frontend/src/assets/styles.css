@@ -200,6 +200,12 @@ html, body {
 
   border-bottom: 1px solid var(--el-border-color);
 }
+.checkbox-wrapper {
+  margin: 0 10px;
+  padding: 20px 0;
+
+  border-bottom: 1px solid var(--el-border-color);
+}
 .stage-select {
   width: 100%;
   margin-right: 10px;

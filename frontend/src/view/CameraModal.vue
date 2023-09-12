@@ -4,7 +4,7 @@ import { ref, watch } from 'vue'
 import { useCamera } from '@/store/camera'
 import { useStore } from '@/store/store'
 
-const emit = defineEmits('update:modelValue')
+const emit = defineEmits(['update:modelValue'])
 const props = defineProps({
   modelValue: {
     type: Boolean,

@@ -9,11 +9,8 @@ const camera = useCamera()
 
 // hooks
 onBeforeMount(async () => {
-  if (!(import.meta.env.VITE_ATOL.toLowerCase() === 'true')) { await camera.initialize() }
   store.initializeTime()
-})
-onMounted(() => {
-  store.initializeAxios()
+	store.initializeAxios()
 })
 </script>
 
