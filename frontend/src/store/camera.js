@@ -25,6 +25,7 @@ export const useCamera = defineStore('camera', {
 				this.reader = new xing.BrowserMultiFormatReader()
 				this.devices = await this.reader.listVideoInputDevices()
 				this.currentDevice = this.devices[0] ? this.devices[0].deviceId : null
+				console.log('camera initialize')
 			} catch(e) {
 				console.log('initialize || camera.js, error => ', e)
 				ElMessage({
@@ -35,7 +36,10 @@ export const useCamera = defineStore('camera', {
     },
 		async destroyInstance() {
 			try {
-				delete this.reader
+				if (this.reader) {
+					delete this.reader
+					console.log('camera destroy')
+				}
 			} catch(e) {
 				console.log('destroyInstance || camera.js, error => ', e)
 				ElMessage({

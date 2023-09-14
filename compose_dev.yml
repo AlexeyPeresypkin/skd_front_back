@@ -24,7 +24,6 @@ services:
       - ./frontend/nginx_dev/gogol/configs:/etc/nginx/conf.d:ro
     ports:
       - "81:81"
-      - "82:82"
     restart: always
 
   nginx:

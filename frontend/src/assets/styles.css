@@ -189,70 +189,7 @@ html, body {
   fill: red;
 }
 
-/*modal*/
-.select-wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  margin: 0 10px;
-  padding: 0 0 20px;
-
-  border-bottom: 1px solid var(--el-border-color);
-}
-.checkbox-wrapper {
-  margin: 0 10px;
-  padding: 20px 0;
-
-  border-bottom: 1px solid var(--el-border-color);
-}
-.stage-select {
-  width: 100%;
-  margin-right: 10px;
-}
-.popper-stage-select {
-  max-width: calc(100vw - 40px);
-  overflow-x: auto;
-}
-.color-wrapper {
-  margin: 10px 10px 0;
-}
-.color-title {
-  margin-bottom: 10px;
-  line-height: var(--el-dialog-font-line-height);
-  font-size: var(--el-dialog-title-font-size);
-  color: var(--el-text-color-primary);
-}
-.el-color-picker, .el-color-picker__trigger {
-  width: 100px;
-}
-
-#camera {
-  width: 100%;
-  height: 65vh;
-}
-.camera-select {
-  margin-top: 20px;
-  width: 100%
-}
-.camera-block {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  width: 100%;
-  height: 50vh;
-
-  color: black;
-
-  font-size: 20px;
-  text-align: center;
-}
-
-.el-dialog__body {
-  padding: 10px;
-}
-
+/*store*/
 .warning-message {
   display: flex;
   flex-direction: column;

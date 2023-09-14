@@ -2,10 +2,8 @@
   "name": "passage_control_frontend",
   "version": "1.0.0",
   "scripts": {
-    "dev": "cross-env VITE_ATOL=false vite",
-    "dev_atol": "cross-env VITE_ATOL=true vite",
-    "build": "cross-env VITE_ATOL=false vite build",
-    "build_atol": "cross-env VITE_ATOL=true vite build"
+    "dev": "vite",
+    "build": "vite build"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.4.2",
@@ -21,7 +19,6 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^4.2.1",
-    "cross-env": "^7.0.3",
     "vite": "^4.3.4"
   }
 }

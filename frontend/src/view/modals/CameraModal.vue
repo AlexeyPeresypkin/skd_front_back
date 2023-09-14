@@ -74,7 +74,7 @@ function closeCameraModal() {
     @closed='onCameraModalClose'
   >
     <template #default>
-      <div v-show='!showCameraBlock' class='camera-wrapper'>
+      <div v-show='!showCameraBlock'>
         <video id='camera' ref='cameraContainer'></video>
         <el-select class='camera-select' v-model='camera.currentDevice'>
           <el-option
@@ -105,3 +105,31 @@ function closeCameraModal() {
     </template>
   </el-dialog>
 </template>
+
+<style scoped>
+#camera {
+  width: 100%;
+  height: 65vh;
+}
+.camera-select {
+  margin-top: 20px;
+  width: 100%
+}
+.camera-block {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  height: 50vh;
+
+  color: black;
+
+  font-size: 20px;
+  text-align: center;
+}
+
+:global(.el-dialog__body) {
+  padding: 10px;
+}
+</style>

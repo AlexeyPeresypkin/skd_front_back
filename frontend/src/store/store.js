@@ -45,6 +45,13 @@ export const useStore = defineStore('store',{
 				return response
 			}, async (error) => {
 				switch(true) {
+					case !(Object.hasOwn(error, 'status')):
+						ElNotification({
+							title: 'Внимание',
+							type: 'error',
+							message: error.message
+						})
+						break
 					case error.response.status === 401 && error.response.data.detail !== 'Incorrect username or password':
 						this.removeToken()
 						await ElMessageBox({

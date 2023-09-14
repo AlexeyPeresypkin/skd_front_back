@@ -79,8 +79,8 @@ export const useSettings = defineStore('settings', {
         const firstTheatre = a.theatre.toLowerCase()
         const secondTheatre = b.theatre.toLowerCase()
 
-        const firstGate = a.gate?.toLowerCase()
-        const secondGate = b.gate?.toLowerCase()
+        const firstGate = a.gate ? a.gate.toLowerCase() : null
+        const secondGate = b.gate ? b.gate.toLowerCase() : null
 
         switch(true) {
           case !firstGate && !secondGate:

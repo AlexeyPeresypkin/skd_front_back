@@ -1,5 +1,5 @@
 <script setup>
-import { onBeforeMount, onMounted } from 'vue'
+import { onBeforeMount } from 'vue'
 
 import { useStore } from './store/store'
 import { useCamera } from './store/camera'

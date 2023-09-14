@@ -1,8 +1,9 @@
 <script setup>
 import DisplayView from './DisplayView.vue'
-import CameraModal from './CameraModal.vue'
+import SettingsModal from '@/view/modals/SettingsModal.vue'
+import CameraModal from '@/view/modals/CameraModal.vue'
 
-import { ref, reactive, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 
@@ -18,15 +19,10 @@ const settings = useSettings()
 const camera = useCamera()
 
 const stageModal = ref(false)
+const settingsModal = ref(false)
+
 const cameraModal = ref(false)
 const ticketNumberContainer = ref(null)
-const selectedStageId = ref(null)
-const atolMode = ref(false)
-const colors = reactive({
-  success: '',
-  error: '',
-  pushkin: '',
-})
 
 const isEventChecked = computed(() => (ev) => {
 	return !!settings.selectedEvents.find(event => event === ev)
@@ -51,33 +47,15 @@ watch(() => settings.ticketType, () => {
 watch(() => settings.entranceType, () => {
   if (ticketNumberContainer.value) ticketNumberContainer.value.focus()
 })
-watch(() => settings.atolMode, async (val) => {
-	val ? await camera.destroyInstance() : await camera.initialize()
-})
 
 // log
 function showLog() {
 	router.push({ name: 'Log'})
 }
-
-// settings modal
-function openSelectStageModal() {
-  selectedStageId.value = settings.getStageId || null
-  colors.success = settings.getColors.success
-  colors.pushkin = settings.getColors.pushkin
-  colors.error = settings.getColors.error
-  atolMode.value = settings.getAtolMode
-  stageModal.value = true
+// modals
+function openSettingsModal() {
+  settingsModal.value = true
 }
-function closeSelectStageModal() {
-  if (!settings.stageId && settings.stageId !== 0) return
-  stageModal.value = false
-}
-function beforeSelectStageModalClose(done) {
-	if (!settings.stageId && settings.stageId !== 0) return
-  done()
-}
-// camera modal
 function openCameraModal() {
   cameraModal.value = true
 }
@@ -86,7 +64,6 @@ function formatDate(date) {
 	if(!date) return
   return `${date.split('T')[0]}:${date.split('T')[1]}`
 }
-
 // ticket request
 async function checkTicket() {
   try {
@@ -96,24 +73,7 @@ async function checkTicket() {
     console.log('ScannerView.vue || checkTicket, error => ', e)
   }
 }
-
 // settings
-function clearSelect() {
-  selectedStageId.value = null
-}
-async function saveLocalSettings() {
-  await settings.saveSettings({
-    stageId: selectedStageId.value || 0,
-    colors,
-    atolMode: atolMode.value
-  })
-  settings.setStageId(selectedStageId.value || 0)
-
-  await store.getRepertoire()
-  store.getRepertoireWss()
-
-  closeSelectStageModal()
-}
 async function selectEvent(ev, value) {
   settings.setSelectedEvents(ev, value)
 
@@ -148,26 +108,21 @@ async function saveSettings() {
 
 onMounted(async () => {
   try {
+    store.loader = true
     await settings.getSettings()
     await store.initializeWss()
 
-    selectedStageId.value = settings.getStageId || null
-    colors.success = settings.getColors.success
-    colors.pushkin = settings.getColors.pushkin
-    colors.error = settings.getColors.error
-    atolMode.value = settings.atolMode
-    await settings.getStagesForSelect()
-
-    if (!settings.stageId && settings.stageId !== 0) openSelectStageModal()
+    if (!settings.stageId && settings.stageId !== 0) openSettingsModal()
     if (settings.stageId || settings.stageId === 0) {
       await store.getRepertoire()
       store.getRepertoireWss()
+
+      if (!settings.atolMode) {
+        await camera.initialize()
+      }
     }
 
-		if(!settings.atolMode) {
-			console.log('camera initialize')
-			await camera.initialize()
-    }
+    store.loader = false
   } catch(e) {
     console.log('ScannerView.vue || onMounted, error => ', e)
   }
@@ -185,8 +140,6 @@ onMounted(async () => {
         v-model='store.ticketNumber'
         class='number-input'
         ref='ticketNumberContainer'
-        :autofocus='true'
-        type='number'
         @keydown.enter='checkTicket'
       />
       <el-button
@@ -280,7 +233,7 @@ onMounted(async () => {
         class='settings-button'
         type='primary'
         :plain='true'
-        @click='openSelectStageModal'
+        @click='openSettingsModal'
       >
         <svg
              xmlns="http://www.w3.org/2000/svg"
@@ -293,75 +246,7 @@ onMounted(async () => {
       </el-button>
     </div>
 
-    <el-dialog
-      v-model='stageModal'
-      title='Выберите сцену:'
-      width='90%'
-      :showClose = 'true'
-      :beforeClose='beforeSelectStageModalClose'
-    >
-      <div class='select-wrapper'>
-        <el-select
-          v-model='selectedStageId'
-          class='stage-select'
-          popper-class='popper-stage-select'
-          placeholder='Выберите сцену'
-          :clearable='true'
-          :filterable='true'
-        >
-          <el-option
-            v-for='stage in settings.stagesForSelect'
-            :key='stage'
-            :label='`${stage.label} ${stage.gate ? `<<${stage.gate}>>` : ""} (${stage.theatre})`'
-            :value='stage.value'
-          />
-        </el-select>
-        <el-button
-          type='primary'
-          :plain='true'
-          @click='clearSelect'
-        >
-          Очистить
-        </el-button>
-      </div>
-      <div class='checkbox-wrapper'>
-        <el-checkbox
-                v-model='atolMode'
-                label='Сканер АТОЛ'
-                :border='true'
-        />
-      </div>
-      <div class='color-wrapper'>
-        <div class='color-title'>Цветовая схема:</div>
-        <el-form label-position='left' label-width='150'>
-          <el-form-item label='Успешный проход:'>
-            <el-color-picker v-model='colors.success' class='color-picker' />
-          </el-form-item>
-          <el-form-item label='Карта Пушкина:'>
-            <el-color-picker v-model='colors.pushkin' class='color-picker' />
-          </el-form-item>
-          <el-form-item label='Ошибка:'>
-            <el-color-picker v-model='colors.error' class='color-picker' />
-          </el-form-item>
-        </el-form>
-
-      </div>
-      <template #footer>
-        <el-button
-          type='primary'
-          :plain='true'
-          @click='closeSelectStageModal'
-        >
-          Отмена
-        </el-button>
-        <el-button
-          type='primary'
-          @click='saveLocalSettings'
-        >
-          Сохранить
-        </el-button>
-      </template>
-    </el-dialog>
+    <SettingsModal v-model='settingsModal' />
     <CameraModal v-model='cameraModal' />
   </div>
 </template>

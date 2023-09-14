@@ -26,7 +26,6 @@ services:
       - ./backend/certbot/conf/:/etc/nginx/ssl/:ro
     ports:
       - "81:81"
-      - "82:82"
     restart: always
 
   nginx:
