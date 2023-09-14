@@ -45,7 +45,7 @@ export const useStore = defineStore('store',{
 				return response
 			}, async (error) => {
 				switch(true) {
-					case !(Object.hasOwn(error, 'status')):
+					case !(Object.hasOwn(error, 'response') || !(Object.hasOwn(error.response, 'status'))):
 						ElNotification({
 							title: 'Внимание',
 							type: 'error',
